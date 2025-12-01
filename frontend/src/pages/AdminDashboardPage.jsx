@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE } from '../api/config';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 // Helper function to create a new product
 async function createProduct(payload, token) {
@@ -22,6 +23,8 @@ async function createProduct(payload, token) {
 
 function AdminDashboardPage() {
     const { token, user } = useAuth();
+    const navigate = useNavigate();
+    const [products, setProducts] = useState([]);
     const [form, setForm] = useState({
         name: '',
         description: '',
@@ -44,6 +47,14 @@ function AdminDashboardPage() {
             .catch(err =>
                 setStatus('Error: gagal mengambil kategori - ' + err.message)
             );
+    }, []);
+
+    // Fetch products for admin panel
+    useEffect(() => {
+        fetch(`${API_BASE}/api/products`)
+            .then(res => res.json())
+            .then(setProducts)
+            .catch(err => setStatus('Error: gagal mengambil produk - ' + err.message));
     }, []);
 
     const handleChange = (e) => {
@@ -74,6 +85,30 @@ function AdminDashboardPage() {
                 stock: '',
                 category: ''
             });
+            // Redirect ke katalog agar daftar produk ter-refresh
+            navigate('/catalog');
+        } catch (err) {
+            setStatus('Error: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Delete product (admin only)
+    const handleDelete = async (id) => {
+        if (!window.confirm('Yakin ingin menghapus produk ini?')) return;
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/products/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Gagal menghapus produk');
+            setProducts(prev => prev.filter(p => p.id !== id));
+            setStatus('Produk berhasil dihapus.');
         } catch (err) {
             setStatus('Error: ' + err.message);
         } finally {
@@ -453,6 +488,56 @@ function AdminDashboardPage() {
                             </div>
                         )}
                     </form>
+
+                    {/* Daftar produk admin: tampilkan ringkasan + tombol hapus */}
+                    {(user?.role_id === 1 || user?.role === 1) && (
+                        <div style={{ marginTop: 18 }}>
+                            <h3 style={{ margin: '0 0 8px 0', fontSize: 15 }}>Daftar Produk (Admin)</h3>
+                            <div style={{ display: 'grid', gap: 10 }}>
+                                {products.length === 0 && (
+                                    <div style={{ color: '#6b7280', fontSize: 13 }}>Belum ada produk.</div>
+                                )}
+                                {products.map((p) => (
+                                    <div
+                                        key={p.id}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 12,
+                                            padding: '8px 10px',
+                                            borderRadius: 8,
+                                            border: '1px solid #e5e7eb',
+                                            background: '#fff'
+                                        }}
+                                    >
+                                        <div style={{ width: 64, height: 48, overflow: 'hidden', borderRadius: 6 }}>
+                                            <img src={p.image || '/'} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 14, fontWeight: 600 }}>{p.name}</div>
+                                            <div style={{ fontSize: 12, color: '#6b7280' }}>{p.category} • {p.brand} • Rp {p.price}</div>
+                                        </div>
+                                        <div>
+                                            <button
+                                                onClick={() => handleDelete(p.id)}
+                                                style={{
+                                                    background: '#ef4444',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    padding: '6px 10px',
+                                                    borderRadius: 8,
+                                                    cursor: 'pointer'
+                                                }}
+                                                type="button"
+                                            >
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Panel info samping */}

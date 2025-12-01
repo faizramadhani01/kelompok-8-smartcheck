@@ -179,6 +179,21 @@ app.post('/api/products', authenticate, isAdmin, async (req, res) => {
   }
 });
 
+// [ADMIN] Endpoint untuk menghapus produk
+app.delete('/api/products/:id', authenticate, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query('SELECT id FROM products WHERE id = ?', [id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Product not found' });
+
+    await pool.query('DELETE FROM products WHERE id = ?', [id]);
+    res.json({ id: Number(id), message: 'Product deleted' });
+  } catch (err) {
+    console.error('Error deleting product:', err);
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
+
 
 // =============== VISITOR COUNTER ===============
 app.get('/api/visitor-count', (req, res) => {
