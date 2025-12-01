@@ -1,14 +1,14 @@
-import mysql from 'mysql2/promise';
+const mysql = require('mysql2/promise');
 
+// Sesuaikan kalau user / password MySQL-mu beda
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'Checkerhp',
-  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'smartcheck',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
-export default pool;
+module.exports = pool;

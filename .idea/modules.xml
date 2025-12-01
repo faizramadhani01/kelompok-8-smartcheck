@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/cheker-hp.iml" filepath="$PROJECT_DIR$/.idea/cheker-hp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/SmartCheck Web.iml" filepath="$PROJECT_DIR$/.idea/SmartCheck Web.iml" />
     </modules>
   </component>
 </project>
